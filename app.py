@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from pypdf import PdfReader
 from docx import Document
 import openai
@@ -7,13 +7,34 @@ import win32com.client  # Only needed if running on Windows for .doc files
 import pythoncom  # For COM initialization
 import tempfile
 import os
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# Set your OpenAI API key
+# OpenAI API key
 openai.api_key = 'sk-proj-AKzJAY8kXnNv4u4Vb5jhT3BlbkFJNJqFbDIEh06QWkbsRwGs'
 
-# Define your ats_extractor function using the OpenAI API
+# Flask configuration
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pit@localhost/parserlogin'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialize SQLAlchemy
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+    def __init__(self, full_name, email, password):
+        self.full_name = full_name
+        self.email = email
+        self.password = generate_password_hash(password, method='pbkdf2:sha256')
+
+# ats_extractor function using the OpenAI API
 def ats_extractor(resume_data):
     prompt = '''
     You are an expert in resume parsing. Please extract all relevant information from the provided resume file. Make sure to extract details mentioned inside boxes and other special formats. Organize the information in the following JSON format:
@@ -158,5 +179,66 @@ def ats():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-if __name__ == "__main__":
-    app.run(port=8000, debug=True)
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        full_name = request.form.get('full_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        re_password = request.form.get('re_password')
+
+        # Debugging statements
+        print(f"Full Name: {full_name}")
+        print(f"Email: {email}")
+        print(f"Password: {password}")
+        print(f"Re-entered Password: {re_password}")
+
+        if password != re_password:
+            flash('Passwords do not match!', 'error')
+            return render_template('index.html', signup_active=True)
+
+        # Check if the email already exists
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email address already exists! Please log in.', 'error')
+            return redirect(url_for('login'))
+
+        # Create new user
+        new_user = User(full_name=full_name, email=email, password=password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Signup successful! Please log in.')
+        return redirect(url_for('login'))
+
+    return render_template('index.html', signup_active=True)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Authenticate user
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash('Email address not found! Please sign up.', 'error')
+            return redirect(url_for('signup'))
+
+        if not check_password_hash(user.password, password):
+            flash('Incorrect password!')
+            return redirect(url_for('login'))
+
+        flash('Login successful!')
+        return redirect(url_for('dashboard'))
+
+    return render_template('index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return render_template('home.html')
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(port=5000, debug=True)
