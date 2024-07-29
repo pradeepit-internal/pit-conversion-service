@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Template</title>
+ 
+    <style>
+
+body {
+    font-family: Calibri, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background-color: #fff; /* No grey color */
+    font-weight: bold;
+}
+
+h2, h3 {
+    margin: 0;
+    padding: 0;
+    font-size: 11px; /* Set font size for headings */
+}
+
+/* Add spacing between section headings and tables */
+section h2 {
+    margin-bottom: 10px; /* Adjust this value to increase or decrease the distance */
+}
+
+/* Add spacing specifically for project headings */
+.project h3 {
+    margin-bottom: 10px; /* Adjust this value to increase or decrease the distance */
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+.project {
+    margin-bottom: 20px; /* Add space between each project */
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: disc;
+    margin-left: 20px;
+}
+
+.header-bar {
+    height: 4px; /* Thickness of the bar */
+    background-color: #000; /* Black color for the bar */
+    margin-bottom: 20px; /* Space between bar and section */
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Bar -->
+        <div class="header-bar"></div>
+
+        <!-- Personal Information Section -->
+        <section class="personal-info">
+            <table>
+                <tr>
+                    <th>Full Name</th>
+                    <td>{{ data['Name'] }}</td>
+                </tr>
+                <tr>
+                    <th>Role / Designation</th>
+                    <td>{{ data['Role'] }}</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Profile Section -->
+        <section class="profile">
+            <h2>Profile</h2>
+            <table>
+                <tr>
+                    <td>{{ data['Profile'] }}</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Technical Skills Section -->
+        <section class="skills">
+            <h2>Technical or Key Skills:</h2>
+            <table>
+                <tr>
+                    <td>
+                        <h2>Key Skills:</h2>
+                        <ul>
+                            {% for skill in data['Technical Skills'] %}
+                                <li>{{ skill['Skills'] }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Education Section -->
+        <section class="education">
+            <h2>Education</h2>
+            <table>
+                {% for edu in data['Educational Details'] %}
+                    <tr>
+                        <th>Qualification</th>
+                        <td>{{ edu['Qualification'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>University/Board</th>
+                        <td>{{ edu['University/Board'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Year</th>
+                        <td>{{ edu['Year'] }}</td>
+                    </tr>
+                    <tr>
+                        <th>Percentage</th>
+                        <td>{{ edu['Percentage'] }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <!-- Experience Section -->
+        <section class="experience">
+            <h2>Experience</h2>
+            {% for exp in data['Professional Experience'] %}
+                <div class="experience-entry">
+                    <table>
+                        <tr>
+                            <th>Duration</th>
+                            <td>{{ exp['Duration'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Organization</th>
+                            <td>{{ exp['Organization'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Designation</th>
+                            <td>{{ exp['Designation'] }}</td>
+                        </tr>
+                    </table>
+                </div>
+            {% endfor %}
+        </section>
+
+        <!-- Project Section -->
+        <section class="projects">
+            <h2>Projects</h2>
+            {% for proj in data['Project Experience - Detail'] %}
+                <div class="project">
+                    <h3>{{ proj['Project Type'] }}</h3>
+                    <table>
+                        <tr><th>Client Name</th><td>{{ proj['Client Name'] }}</td></tr>
+                        <tr><th>Duration</th><td>{{ proj['Duration'] }}</td></tr>
+                        <tr><th>Role</th><td>{{ proj['Role'] }}</td></tr>
+                        <tr><th>Environment</th><td>{{ proj['Tools & Technology'] }}</td></tr>
+                        <tr><th>Description</th><td>{{ proj['Description'] }}</td></tr>
+                    </table>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>

@@ -1,191 +1,785 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PIT Parser</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0eb56;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            width: 300px;
-            padding: 20px;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus {
-            border-color: #007BFF;
-        }
-
-        .form-group button {
-            width: 100%;
-            padding: 10px;
-            background: #0d0d0d;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .form-group button:hover {
-            background: #f6ee09;
-            color: #090909;
-        }
-
-        .toggle-link {
-            text-align: center;
-            display: block;
-            margin-top: 15px;
-            color: #0a0a09;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .toggle-link:hover {
-            color: #f90808;
-        }
-
-        .flash-messages {
-            color: #d9534f; /* Bootstrap danger color for errors */
-            margin-bottom: 20px;
-            text-align: center;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .flash-message {
-            opacity: 1;
-            transition: opacity 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+   <link rel="stylesheet" href="../static/style.css">
 </head>
+
 <body>
     <div class="container">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="flash-message">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+        <!-- Upload Form -->
+        <div class="upload-form" id="uploadFormWrapper">
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="resume" required>
+                <select id="select" name="company" required>
+                    <option value="" disabled selected>Select template</option>
+                    <option value="brillio">PIT Format</option>
+                    <option value="bosch">Bosch PIT Format</option>
+                    <option value="deloitte">Brillio Client Format</option>
+                </select>
 
-        <div id="loginContainer" style="display: {{ 'none' if signup_active else 'block' }};">
-            <h2>Login</h2>
-            <form action="/login" method="POST">
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" name="email" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit">Login</button>
-                </div>
-                <a class="toggle-link" id="toSignup">Don't have an account? Signup</a>
+                <button type="submit" id="uploadButton">Convert</button>
+                <!-- <a href="../static/Brillio_Empty_Template.docx" download
+                    style="color: #007bff; text-decoration: none; font-weight: bold;">
+                    <u>Download empty PIT Format</u>
+                </a> -->
+
             </form>
         </div>
 
-        <div id="signupContainer" style="display: {{ 'block' if signup_active else 'none' }};">
-            <h2>Signup</h2>
-            <form action="/signup" method="POST">
-                <div class="form-group">
-                    <label for="signupFullName">Full Name</label>
-                    <input type="text" id="signupFullName" name="full_name" placeholder="Enter your full name" required>
-                </div>
-                <div class="form-group">
-                    <label for="signupEmail">Email</label>
-                    <input type="email" id="signupEmail" name="email" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="signupPassword">Password</label>
-                    <input type="password" id="signupPassword" name="password" placeholder="Enter your password" required>
-                </div>
-                <div class="form-group">
-                    <label for="signupRePassword">Re-enter Password</label>
-                    <input type="password" id="signupRePassword" name="re_password" placeholder="Re-enter your password" required>
-                </div>
-                <div class="form-group">
-                    <button type="submit">Signup</button>
-                </div>
-                <a class="toggle-link" id="toLogin">Already have an account? Login</a>
-            </form>
+        <div class="overlay" id="overlay"></div>
+        <div class="loading-container" id="loadingContainer">
+            <div class="spinner"></div>
+            <div class="message" id="loadingMessage">Fetching data... This might take a few seconds.</div>
         </div>
+
+        <div class="header" id="headerSection">
+            <!-- Link wrapper for the logo -->
+            <a href="https://pradeepit.com/en-global/#" target="_blank" rel="noopener noreferrer">
+                <img src="../static/Leadership_logo.png" alt="Company Logo" class="logo1">
+            </a>
+            <!-- Empty div to maintain spacing on the right side -->
+            <div></div>
+        </div>
+
+        <!-- Form Data Display Section -->
+        <div id="formDataDisplay" style="display: none;">
+            <!-- Header with Logo -->
+            <div align="right">
+                <img src="data:image/png;base64,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"
+                    alt="Company Logo" class="logo" height="40" width="130">
+            </div>
+
+            <table style="width: 100%; background: #ffffff; border-color: #fff;">
+                <tr>
+                    <td style="width: 0.7cm; position: relative; top: -25px;">
+                        <div class="sidebar-images">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAE4CAMAAADPZkUAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURf/AAAAAAKi2+tgAAAACdFJOU/8A5bcwSgAAAAlwSFlzAAAywAAAMsABKGRa2wAAAC1JREFUeF7twTEBAAAAwqD1T20JTyAAAAAAAAAAAAAAAAAAAAAAAAAAAACAixpY+AABpzy26QAAAABJRU5ErkJggg=="
+                                alt="Yellow" style="width: 0.6cm; height: 2.5cm; margin-bottom: 0.2cm;">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAAlCAMAAADWWV/xAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURQAAAAAAAKVnuc8AAAACdFJOU/8A5bcwSgAAAAlwSFlzAAAywAAAMsABKGRa2wAAABpJREFUSEvtwTEBAAAAwqD1T20MHyAAAPioAQqNAAEoaKkLAAAAAElFTkSuQmCC"
+                                alt="Black" style="width: 0.6cm; height: 0.8cm;">
+                        </div>
+                    </td>
+                    <td style="padding-left: 0px;">
+                        <h2
+                            style="font-size: 49px; color: #333; border-bottom: 1px solid #161515;  margin-top: 50px; margin-bottom: 20px; padding-left: 0%; width: 100%;">
+                            Profile</h2>
+                    </td>
+                </tr>
+            </table>
+
+
+            <div style="border: none; background: none;">
+                <table>
+                    <tr>
+                        <td style="vertical-align: top; width: 30%;background-color: #fff;">
+                            <img src="data:image/jpeg;base64,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"
+                                alt="Profile Picture" class="profile-img"
+                                style="max-width: 100%; height: auto; margin-right: 20px;">
+                        </td>
+                        <td style="vertical-align: top;background-color: #fff;">
+                            <table id="personalDetailsTable">
+                                <!-- Table content here -->
+                                <tr>
+                                    <th style="width: 100px;">Name</th> <!-- Adjusted width to 100px -->
+                                    <td id="name" class="bold-orange"></td>
+                                </tr>
+                                <tr>
+                                    <th style="width: 100px;">Role</th> <!-- Adjusted width to 80px -->
+                                    <td id="role"></td>
+                                </tr>
+                                <tr>
+                                    <th style="width: 100px;">Email</th> <!-- Adjusted width to 120px -->
+                                    <td id="email"></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Profile content -->
+            <h3 id="profileSummaryHeading">Profile</h3>
+            <p class="profile" id="profileSummary"></p>
+
+            <!-- Professional Experience -->
+            <h3 id="professionalExperienceHeading">Professional Experience</h3>
+            <table id="professionalExperienceTable">
+                <tr>
+                    <th>Duration</th>
+                    <th>Organization</th>
+                    <th>Designation</th>
+                </tr>
+            </table>
+
+            <!-- Technical Skills -->
+            <h3 id="technicalSkillsHeading"Technical Skills</h3>
+            <table id="technicalSkillsTable">
+                <tr>
+                    <th>Expertise</th>
+                    <th>Skills</th>
+                </tr>
+            </table>
+
+            <h3 id="certificationsHeading">Certifications</h3>
+            <p id="certifications"></p>
+
+            <!-- Projects -->
+            <h3>Projects</h3>
+            <div id="projects">
+                <!-- Dynamic project tables will be inserted here -->
+            </div>
+
+            <!-- Education -->
+            <h3 id="educationHeading">Education</h3>
+            <table id="educationTable">
+                <tr>
+                    <th>Qualification</th>
+                    <th>University/Board</th>
+                    <th>Year</th>
+                    <th>Percentage</th>
+                </tr>
+            </table>
+
+        </div>
+
+        <!-- Download Button Section -->
+        <div id="downloadSection">
+
+        </div>
+
     </div>
 
+    <!-- JavaScript for Exporting to Word -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
-        document.getElementById('toSignup').addEventListener('click', function () {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('signupContainer').style.display = 'block';
-        });
-    
-        document.getElementById('toLogin').addEventListener('click', function () {
-            document.getElementById('signupContainer').style.display = 'none';
-            document.getElementById('loginContainer').style.display = 'block';
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            let formData;
+            // Show the loading animation
+            // Show the loading animation and overlay
+            document.getElementById('loadingContainer').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+
+            formData = new FormData(this);
+
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => { return response.json() })
+                .then(data => {
+
+                    // Hide the loading animation and overlay
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('overlay').style.display = 'none';
+
+
+                    // Hide the loading animation
+                    let ele = document.getElementById('select');
+                    if (ele.value === "deloitte") {
+                        //invoke render method with 
+                        document.getElementById('formDataDisplay').innerHTML = deloitteTemplate;
+                        document.getElementById('full-name').textContent = data.personal_info.full_name;
+                        document.getElementById('role-designation').textContent = data.personal_info.role_designation;
+                        document.getElementById('profile').textContent = data.profile;
+
+                        const keySkillsList = document.getElementById('key-skills');
+                        keySkillsList.innerHTML = '';
+                        data.skills.key_skills.forEach(skill => {
+                            const li = document.createElement('li');
+                            li.textContent = skill;
+                            keySkillsList.appendChild(li);
+                        });
+
+                        const educationTable = document.getElementById('education');
+                        educationTable.innerHTML = '';
+
+                        // Assuming data.education is a string with formatted educational details
+                        if (data.education) {
+                            // Split the string into individual educational entries
+                            const educationEntries = data.education.split(';').map(entry => entry.trim());
+
+                            // Create table rows for each educational entry
+                            educationEntries.forEach(entry => {
+                                if (entry.length > 0) {
+                                    const tr = document.createElement('tr');
+                                    const td = document.createElement('td');
+                                    td.textContent = entry;
+                                    tr.appendChild(td);
+                                    educationTable.appendChild(tr);
+                                }
+                            });
+                        }
+
+                        const projectsDiv = document.getElementById('projects');
+                        projectsDiv.innerHTML = '';
+                        let count = 1;
+                        data.projects.forEach((proj) => {
+
+                            const projectDiv = document.createElement('div');
+                            projectDiv.classList.add('project');
+                            projectDiv.innerHTML = `
+                            <h3 ><b>Project Name #${count}</b></h3>
+                            <table>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <td>${proj.client_name}</td>
+                                </tr>
+                                <tr>
+                                    <th>Duration</th>
+                                    <td>${proj.duration}</td>
+                                </tr>
+                                <tr>
+                                    <th>Role</th>
+                                    <td>${proj.role}</td>
+                                </tr>
+                                <tr>
+                                    <th>Environment</th>
+                                    <td>${proj.environment}</td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>${proj.description}</td>
+                                </tr>
+                            </table>
+                        `;
+                            projectsDiv.appendChild(projectDiv);
+                            count++;
+                        });
+
+                        // Function to split text by sentences and insert <br> tags
+                        function formatProfileText(profileText) {
+                            // Split text by periods followed by spaces (and optionally more spaces or new lines)
+                            const sentences = profileText.split(/(?<=\.)\s+/);
+                            // Join sentences with <br> tags
+                            return sentences.join('<br>');
+                        }
+
+                        // Assuming `data.profile` is the profile text fetched from the backend
+                        const formattedProfile = formatProfileText(data.profile);
+
+                        // Set the formatted profile text as HTML
+                        document.getElementById('profile').innerHTML = formattedProfile;
+                        
+                    }
+                    else {
+                        // Populate the fields with the parsed resume data
+                        document.getElementById('name').textContent = data.Name || '';
+                        document.getElementById('email').textContent = data.Email || '';
+                        document.getElementById('role').textContent = data.Role || '';
+                        document.getElementById('profileSummary').textContent = data.Profile || '';
+
+
+                        // Function to split text by sentences while preserving full stops in numbers
+                        function formatProfileText(profileText) {
+                            // Split text by periods followed by spaces, but ignore full stops in numbers
+                            const sentences = profileText.split(/(?<=\.)\s+(?!\d)/);
+                            // Create a <ul> element for the sentences
+                            const profileList = document.createElement('ul');
+
+                            sentences.forEach(sentence => {
+                                const listItem = document.createElement('li');
+                                listItem.textContent = sentence; // Keep the full stop in the sentence
+                                profileList.appendChild(listItem);
+                            });
+
+                            return profileList; // Return the <ul> element
+                        }
+
+                        // Populate profile summary
+                        const profileSummaryContainer = document.getElementById('profileSummary');
+                        profileSummaryContainer.innerHTML = ''; // Clear previous content
+
+                        if (data.Profile) {
+                            const formattedProfile = formatProfileText(data.Profile);
+                            profileSummaryContainer.appendChild(formattedProfile); // Append the <ul> to the container
+                        }
+
+
+
+                        // Populate professional experience
+                        const professionalExperienceTable = document.getElementById('professionalExperienceTable');
+                        if (data['Professional Experience'] && data['Professional Experience'].length > 0) {
+                            professionalExperienceTable.innerHTML = `
+                            <tr>
+                                <th>Duration</th>
+                                <th>Organization</th>
+                                <th>Designation</th>
+                            </tr>`;
+                            data['Professional Experience'].forEach(exp => {
+                                professionalExperienceTable.innerHTML += `
+                                <tr>
+                                    <td>${exp.Duration || ''}</td>
+                                    <td>${exp.Organization || ''}</td>
+                                    <td>${exp.Designation || ''}</td>
+                                </tr>`;
+                            });
+                        } else {
+                            professionalExperienceTable.innerHTML = ''; // Clear table if no data
+                            professionalExperienceTable.style.display = 'none';
+                            document.getElementById('professionalExperienceHeading').style.display = 'none';
+                        }
+
+                        // Populate technical skills
+                        const technicalSkillsTable = document.getElementById('technicalSkillsTable');
+                        if (data['Technical Skills'] && data['Technical Skills'].length > 0) {
+                            technicalSkillsTable.innerHTML = `
+                            <tr>
+                                <th>Expertise</th>
+                                <th>Skills</th>
+                            </tr>`;
+                            data['Technical Skills'].forEach(skill => {
+                                technicalSkillsTable.innerHTML += `
+                                <tr>
+                                    <td>${skill.Category || ''}</td>
+                                    <td>${skill.Skills || ''}</td>
+                                </tr>`;
+                            });
+                        } else {
+                            technicalSkillsTable.innerHTML = ''; // Clear table if no data
+                            technicalSkillsTable.style.display = 'none';
+                        }
+
+                        // Helper function to split text into sentences while preserving full stops in numbers
+                        function splitIntoSentences(text) {
+                            if (typeof text !== 'string') {
+                                return []; // Return an empty array if text is not a string
+                            }
+                            // Split text by periods followed by spaces, but ignore full stops in numbers
+                            return text.split(/(?<=\.)\s+(?!\d)/).map(sentence => sentence.trim()).filter(sentence => sentence.length > 0);
+                        }
+
+                        // Populate projects
+                        const projectsContainer = document.getElementById('projects');
+                        projectsContainer.innerHTML = ''; // Clear previous content
+
+                        if (data['Project Experience - Detail'] && data['Project Experience - Detail'].length > 0) {
+                            data['Project Experience - Detail'].forEach((project, index) => {
+                                const projectTable = document.createElement('table');
+                                projectTable.innerHTML = `
+                                        <tr>
+                                            <th>Project Type</th>
+                                            <td class="bold-orange">${project['Project Type'] || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Description</th>
+                                            <td>${project.Description || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Role</th>
+                                            <td>${project.Role || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Team Size</th>
+                                            <td>${project['Team Size'] || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Duration</th>
+                                            <td>${project.Duration || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tools & Technology</th>
+                                            <td>${project['Tools & Technology'] || ''}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Responsibilities</th>
+                                            <td>
+                                                <ul>${splitIntoSentences(project.Responsibilities || '').map(sentence => `<li>${sentence}</li>`).join('')}</ul>
+                                            </td>
+                                        </tr>`;
+
+                                // Add a heading for each project
+                                const projectHeading = document.createElement('h3');
+                                projectHeading.textContent = `Project ${index + 1}`;
+                                projectsContainer.appendChild(projectHeading);
+                                projectsContainer.appendChild(projectTable);
+                            });
+                        } else {
+                            projectsContainer.style.display = 'none';
+                        }
+
+
+                        // Populate education
+                        const educationTable = document.getElementById('educationTable');
+                        if (data['Educational Details'] && data['Educational Details'].length > 0) {
+                            educationTable.innerHTML = `
+                            <tr>
+                                <th>Qualification</th>
+                                <th>University/Board</th>
+                                <th>Year</th>
+                                <th>Percentage</th>
+                            </tr>`;
+                            data['Educational Details'].forEach(edu => {
+                                educationTable.innerHTML += `
+                                <tr>
+                                    <td>${edu.Qualification || ''}</td>
+                                    <td>${edu['University/Board'] || ''}</td>
+                                    <td>${edu.Year || ''}</td>
+                                    <td>${edu.Percentage || ''}</td>
+                                </tr>`;
+                            });
+                        } else {
+                            educationTable.style.display = 'none';
+                            document.getElementById('educationHeading').style.display = 'none';
+                        }
+
+                        // Populate certifications
+                        document.getElementById('certifications').textContent = data.Certifications || '';
+                    }
+
+                    document.getElementById('loadingContainer').style.display = 'none';
+
+                    if (data.error) {
+                        alert(data.error);
+                    }
+
+
+
+                    else {
+
+
+                        // Show the form data display section
+                        document.getElementById('uploadFormWrapper').style.display = 'none';
+                        document.getElementById('formDataDisplay').style.display = 'block';
+
+                        // Show the download button
+                        const downloadSection = document.getElementById('downloadSection');
+                        downloadSection.innerHTML = '<button id="downloadButton">Download</button>';
+                        const downloadButton = document.getElementById('downloadButton');
+                        downloadButton.style.display = 'block'; // Ensure it's visible
+                        downloadButton.addEventListener('click', exportToWord); // Attach event listener
+                    }
+                })
+                .catch(error => {
+
+                    // Hide the loading animation and overlay
+                    document.getElementById('loadingContainer').style.display = 'none';
+                    document.getElementById('overlay').style.display = 'none';
+
+
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
         });
 
-        // Function to hide flash messages after 3 seconds
-        function hideFlashMessages() {
-            const messages = document.querySelectorAll('.flash-message');
-            messages.forEach(message => {
-                setTimeout(() => {
-                    message.style.opacity = '0';
-                    setTimeout(() => message.remove(), 500); // Allow time for fade-out
-                }, 3000); // Hide after 3 seconds
-            });
+
+
+        const deloitteTemplate = `
+            <style>
+                body {
+                    font-family: Calibri, Arial, sans-serif;
+                    line-height: 1.6;
+                    background-color: #fbc21e;
+                    font-size: 14.5px;
+                    margin: 0;
+                }
+
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+
+                th, td {
+                    padding: 1px;
+                    background-color: #fff; 
+                    text-align: left;
+                    border: 3px solid #000; /* Thin black border for table cells */
+                    vertical-align: middle; /* Vertically align text to the middle */
+                }
+
+                th {
+                    background-color: #fff; /* White background for table headers */
+                    font-weight: bold;
+                    border: 1px solid #000; /* Thin black border for table cells */
+                }
+
+                h2, h3 {
+                    margin: 0;
+                    padding: 0;
+                    font-size: 14.5px; /* Set font size for headings */
+                    text-decoration: none;
+                }
+
+                /* Add spacing between section headings and tables */
+                section h2 {
+                    margin-bottom: 10px; /* Adjust this value to increase or decrease the distance */
+                }
+
+                /* Add spacing specifically for project headings */
+                .project h3 {
+                    margin-bottom: 10px; /* Adjust this value to increase or decrease the distance */
+                }
+
+                section {
+                    margin-bottom: 20px;
+                }
+
+                .project {
+                    margin-bottom: 20px; /* Add space between each project */
+                    vertical-align: middle; /* Vertically align text to the middle */
+                }
+
+                ul {
+                    margin: 0;
+                    padding: 0;
+                    
+                    margin-left: 20px;
+                }
+
+                .header-bar {
+                    height: 4px; /* Thickness of the bar */
+                    background-color: #000; /* Black color for the bar */
+                    margin-bottom: 20px; /* Space between bar and section */
+                }
+                  
+            </style>
+            <div >
+                    <!-- Header Bar -->
+                     <div align="left">
+                        <img src="data:image/jpeg;base64,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" alt="Company Logo" class="logo" height="50" width="130">
+                     </div>
+                 
+                    <div class="header-bar" style="height:4px; background-color: #000; margin-bottom: 20px;color:#000; font-size:2px"><p>Hello</p></div>
+                    
+            
+                    <!-- Personal Information Section -->
+                    <section class="personal-info">
+                        <table>
+                            <tr>
+                                <th>Full Name</th>
+                                <td id="full-name"></td>
+                            </tr>
+                            <tr>
+                                <th>Role / Designation:</th>
+                                <td id="role-designation"></td>
+                            </tr>
+                        </table>
+                          <br>
+                    </section>
+                   
+                    <!-- Profile Section -->
+                    <section class="profile">
+                        <h2>Profile:</h2>
+                          <br>
+                        <table>
+                            <tr>
+                                <td id="profile"></td>
+                            </tr>
+                        </table>
+                    </section>
+                      <br>
+                    <!-- Technical Skills Section -->
+                    <section class="skills">
+                        <h2>Technical or Key Skills:</h2>
+                          <br>
+                        <table>
+                            <tr>
+                                <td>
+                                    <h2>Key Skills:</h2>
+                                    <ul id="key-skills">
+                                        <!-- Skills will be dynamically inserted here -->
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+                      <br>
+                    <!-- Education Section -->
+                    <section class="education">
+                        <h2>Education:</h2>
+                          <br>
+                        <table id="education">
+                            <!-- Education entries will be dynamically inserted here -->
+                        </table>
+                    </section>
+
+                   <br>
+                        <h2>Experience:</h2>
+                      <!-- Project Section -->
+                           <section class="projects">
+                                <div id="projects">
+                                 <!-- Projects will be dynamically inserted here -->
+                               </div>
+                           </section>
+                    
+                </div>
+`;
+
+        // Update loading message function
+        const messages = [
+            "Fetching data... This might take a few seconds.",
+            "Analyzing the text for insights... Hang tight, we're on it.",
+            "Almost there! Extracting details from your resume.",
+            "Getting your data ready... Please be patient."
+        ];
+
+        let currentIndex = 0;
+
+        function updateMessage() {
+            currentIndex = (currentIndex + 1) % messages.length;
+            document.getElementById('loadingMessage').innerText = messages[currentIndex];
         }
 
-        // Call the function if there are any flash messages
-        if (document.querySelectorAll('.flash-message').length > 0) {
-            hideFlashMessages();
+        // Update the message every 3 seconds
+        setInterval(updateMessage, 2000);
+
+
+        function exportToWord() {
+            // Get HTML content from formDataDisplay section
+            const formDataDisplayHTML = document.getElementById('formDataDisplay').innerHTML;
+
+            // Create a Blob containing the HTML data
+            const blob = new Blob([wrapHtmlInWordTemplate(formDataDisplayHTML)], { type: 'application/msword' });
+
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'PIT.doc';
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Clean up
+            document.body.removeChild(link);
         }
+
+        // Helper function to wrap HTML in a Word-compatible template
+        function wrapHtmlInWordTemplate(html) {
+            // Define a basic Word document structure with inline CSS styles
+            const template = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Resume</title>
+            <style>
+                body {
+                    font-family: Calibri, Arial, sans-serif;
+                    line-height: 1.6;
+                    font-size: 11pt; /* Ensure font size is specified in points (pt) */
+                    margin: 0;
+                }
+                .container {
+                    max-width: calc(210mm - 32mm);
+                    margin: 0 auto;
+                    background: #fff;
+                    padding: 20px 16mm;
+                    border-radius: 8px;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                    position: relative; /* Ensure relative positioning for absolute positioning of logo */
+                }
+                .header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    padding-top: 10px;
+                }
+                .logo {
+                    width: 150px;
+                    height: auto;
+                    opacity: 0.6;
+                    position: absolute;
+                    top: 10px; /* Adjust top position for desired vertical alignment */
+                    right: 20px; /* Adjust right position for right-hand corner */
+                }
+                .sidebar-images {
+                    position: absolute;
+                    left: 20px; /* Adjust left position for left-hand corner */
+                    top: 100px; /* Adjust top position for desired vertical alignment */
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .sidebar-images img {
+                    width: 50px; /* Adjust width of images */
+                    height: auto; /* Maintain aspect ratio */
+                    margin-bottom: 10px; /* Adjust margin as needed */
+                }
+                .sidebar-images img.yellow {
+                    /* Specific styles for yellow image */
+                }
+                .sidebar-images img.black {
+                    /* Specific styles for black image */
+                }
+                h3 {
+                font-size: 16pt; /* Specify font size in points (pt) */
+                color: black;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 10px;
+                margin-top: 20px;
+                font-weight: normal; /* Ensures the text is not bold */
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                    background-color: #f0f0f0;
+                }
+
+                table th,
+                table td {
+                    border: 1px solid #ffffff;
+                    text-align: left;
+                    padding: 1px;
+                    margin: 3px;
+                    margin-bottom: 10px;
+                    font-family: Calibri, Arial, sans-serif;
+                    vertical-align: middle; /* Vertically align text to the middle */
+                }
+
+                th {
+                    background-color: #e7e7e7;
+                    width: 25%;
+                    white-space: nowrap;
+                }
+                .profile {
+                    font-style: normal;
+                    margin-bottom: 20px;
+                }
+                .profile-section {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 20px;
+                }
+                .profile-img {
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 8px;
+                    margin-right: 20px;
+                }
+                .personal-details {
+                    flex: 1;
+                }
+                .bold-orange {
+                    font-weight: bold;
+                    color: rgb(252, 194, 6);
+                }
+            </style>
+        </head>
+        
+        <body>
+        
+            <div class="container">
+                ${html}
+                <!-- Additional content can go here -->
+            </div>
+        </body>
+        </html>
+    `;
+            return template;
+        }
+
+        // Event listener for the download button
+        document.getElementById('downloadButton').addEventListener('click', exportToWord);
+
     </script>
+
 </body>
+
 </html>

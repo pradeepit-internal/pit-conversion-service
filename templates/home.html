@@ -1,682 +1,352 @@
+<!-- 
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PIT Parser</title>
+    <title>Resume to PIT Format</title>
     <style>
         body {
-            font-family: Calibri, Arial, sans-serif;
-            line-height: 1.6;
-            background-color: #f4df56;
-            font-size: 11px;
             margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fbc21e; 
+            color: #333;
+            transition: background-color 0.5s ease-in-out;
         }
 
         .container {
-            max-width: 210mm;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px 16mm;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-top: 100px;
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background: rgb(255, 255, 255);
+            color: rgb(5, 5, 5);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 2s ease-in-out;
         }
 
-        /* Header styling */
-        .header {
-            width: 100%;          /* Full width */
-            height: 70px;        /* Adjust height as needed */
-            background-color: #f8f9fa; /* Background color */
-            display: flex;        /* Flexbox for centering */
-            align-items: center;  /* Vertically center items */
-            justify-content: space-between; /* Space between logo and title */
-            border-bottom: 1px solid #ddd; /* Optional bottom border */
-            position: fixed;      /* Fixed position if you want it to stay on top */
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: slideIn 1.5s ease-in-out;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            animation: slideIn 2s ease-in-out;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #000; /* Black button */
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            animation: pulsate 1.5s infinite; /* Continuous pulsating effect */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulsate {
+            0% {
+                background-color: #000;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+            }
+            50% {
+                background-color: #333;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            }
+            100% {
+                background-color: #000;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+            }
+        }
+
+        /* Loading Animation Styles */
+        .loading {
+            position: fixed;
             top: 0;
             left: 0;
-            z-index: 1000;        /* Ensure it's on top of other content */
-            padding: 0 20px;      /* Optional padding on the sides */
-        }
-
-        /* Logo styling */
-        .logo1 {
-            max-height: 80%; /* Adjust height as needed to fit within the header */
-            width: auto;     /* Maintain aspect ratio */
-        }
-
-        h2 {
-            font-size: 36px;
-            color: #333;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            padding-left: 40px;
-            /* Adjust this value to move the text to the right */
-            position: relative;
-            display: flex;
-            align-items: center;
-            margin-right: 10px;
-        }
-
-        h3 {
-            font-size: 16pt;
-            /* Specify font size in points (pt) */
-            color: black;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-            margin-top: 20px;
-            font-weight: normal;
-            /* Ensures the text is not bold */
-        }
-
-
-        table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background-color: #f0f0f0;
-        }
-
-        table th,
-        table td {
-            border: 1px solid #ffffff;
-            text-align: left;
-            padding: 5px;
-            font-family: Calibri;
-            vertical-align: top;
-
-        }
-
-        th {
-            background-color: #e7e7e7;
-            width: 25%;
-            white-space: nowrap;
-        }
-
-
-        .upload-form {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .upload-form input[type="file"],
-        .upload-form select,
-        .upload-form button {
-            display: inline-block;
-            margin: 5px 10px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .upload-form input[type="file"] {
-            background-color: #f0f0f0;
-        }
-
-        .upload-form select {
-            background-color: #fff;
-            border: 1px solid #ccc;
-        }
-
-        .upload-form button {
-            background-color: #000;
-            color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .upload-form button:hover {
-            background-color: #333;
-        }
-
-        #downloadSection {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #downloadButton {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #0e0e0f;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #downloadButton:hover {
-            background-color: #545555;
-        }
-
-        .logo1 {
-            width: 130px;
-            /* Adjust width as needed */
-            height: auto;
-            /* Maintain aspect ratio */
-            position: absolute;
-            top: 10px;
-            /* Adjust top position for desired vertical alignment */
-            left: 10px;
-            /* Adjust left position for left-hand corner */
+            height: 100%;
+            background-color: #fff; /* White background during loading */
+            display: flex;
+            justify-content: center;
+            align-items: center;
             z-index: 1000;
-            /* Ensure logo is above other content if necessary */
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
         }
 
-        .bold-orange {
-            font-weight: bold;
-            color: rgb(252, 194, 6);
+        .loading.active {
+            visibility: visible;
+            opacity: 1;
         }
 
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
+        .loader-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 120px; /* Increased size of the loader */
+            height: 120px;
             border-radius: 50%;
-            border-top: 4px solid #050505;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            background: #000; /* Black circle */
+            position: relative;
+            animation: coin-flip 4.8s cubic-bezier(0, 0.2, 0.8, 1) infinite; /* Slower flip */
         }
 
-        @keyframes spin {
+        .loader:after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #fff; /* White background for the loader */
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: coin-flip 4.8s cubic-bezier(0, 0.2, 0.8, 1) infinite; /* Slower flip */
+        }
+
+        .logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px; /* Adjust size as needed */
+            height: auto;
+            z-index: 1; /* Ensure the logo is on top */
+        }
+
+        @keyframes coin-flip {
+            0%, 100% {
+                animation-timing-function: cubic-bezier(0.5, 0, 1, 0.5);
+            }
             0% {
-                transform: rotate(0deg);
+                transform: rotateY(0deg);
             }
-
+            50% {
+                transform: rotateY(1800deg);
+                animation-timing-function: cubic-bezier(0, 0.5, 0.5, 1);
+            }
             100% {
-                transform: rotate(360deg);
+                transform: rotateY(3600deg);
+            }
+        }
+        .welcome-text {
+    font-size: 24px;
+    color: #333;
+    margin-top: 10px;
+    opacity: 0; /* Initial state for the fade-in effect */
+    transform: translateY(20px); /* Initial state for the slide-up effect */
+    animation: fadeInUp 3s forwards; /* Apply the animation */
+    margin-left: 10px;
+}
+
+/* Define the keyframes for the fade-in and slide-up animation */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Resume to PIT Format</h1>
+        <p>Simplify your recruitment process by converting resumes into our organization's PIT format with ease.</p>
+        <button id="getStartedBtn">Get Started</button>
+    </div>
+
+    
+    <div id="loading" class="loading">
+        <div class="loader-wrapper">
+            <div class="loader">
+              
+                <img src="../static/Loading_logo.png" alt="Logo" class="logo">
+            </div>
+            <div class="welcome-text">
+                <b>Welcome!</b>
+            </div>
+        </div>
+        
+    </div>
+   
+    <script>
+        document.getElementById("getStartedBtn").addEventListener("click", function() {
+         
+            var loading = document.getElementById("loading");
+            var body = document.body;
+            loading.classList.add("active");
+            body.style.backgroundColor = "#fff"; 
+
+           
+            setTimeout(function() {
+                window.location.href = "/pit"; 
+            }, 1000); 
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume to PIT Format</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fbc21e; 
+            color: #333;
+            transition: background-color 0.5s ease-in-out;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background: rgb(255, 255, 255);
+            color: rgb(5, 5, 5);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: slideIn 1.5s ease-in-out;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            animation: slideIn 2s ease-in-out;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            color: white;
+            background: #000; /* Black button */
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            animation: pulsate 1.5s infinite; /* Continuous pulsating effect */
+            transition: transform 0.3s ease-in-out;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulsate {
+            0% {
+                background-color: #000;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+            }
+            50% {
+                background-color: #333;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            }
+            100% {
+                background-color: #000;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
             }
         }
 
-        .message {
-            font-size: 16px;
+        .welcome-text {
+            font-size: 24px;
             color: #333;
-            text-align: center;
             margin-top: 10px;
+            opacity: 0; /* Initial state for the fade-in effect */
+            transform: translateY(20px); /* Initial state for the slide-up effect */
+            animation: fadeInUp 3s forwards; /* Apply the animation */
+            margin-left: 10px;
         }
 
-        .loading-container {
-            display: none;
-            text-align: center;
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <!-- Upload Form -->
-        <div class="upload-form" id="uploadFormWrapper">
-            <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" name="resume" required>
-                <select name="company" required>
-                    <option value="brillio">Brillio Format</option>
-                    <option value="bosch">Bosch Format</option>
-                </select>
-                <button type="submit" id="uploadButton">Make it happen </button>
-                <!-- <a href="../static/Brillio_Empty_Template.docx" download
-                    style="color: #007bff; text-decoration: none; font-weight: bold;">
-                    <u>Download empty PIT Format</u>
-                </a> -->
-
-            </form>
-        </div>
-
-        <div class="loading-container" id="loadingContainer">
-            <div class="spinner"></div>
-            <div class="message" id="loadingMessage">Fetching data... This might take a few seconds.</div>
-        </div>
-
-        <div class="header" id="headerSection">
-            <img src="../static/Logo.png" alt="Company Logo" class="logo1">
-          
-            <!-- Empty div to maintain spacing on the right side -->
-            <div></div>
-        </div>
-
-        <!-- Form Data Display Section -->
-        <div id="formDataDisplay" style="display: none;">
-            <!-- Header with Logo -->
-            <div align="right">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAAAqCAYAAACz1bmVAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABpySURBVHhe7VwJdBRV1g4BAoQtEEIS9j0Q1qCiIooyiiwhQFa2sCSQBASNQNgxCMKgoOwqOw44Ii6o4+CGgzqOHpcZHH+3pLfqJd2dpLMQSLq7qrrefPdR3X93EhCODjgz+c55p1+9d9/+1bv3vqrqoAb896Bdu3bdmjRpcjuit9ygcPttt90Wjt9rw6hRoyLuvPPOkT169JgTHh6+LCoqal379u0XDxkyJGn06NGD8vPzQ1XRBtwktG3bdk9wcDBDVLpBgQ0bNmwOfq+OwYMH3w+y7G3durW+adOmCnWyUaNGzP+3RYsWYlhY2F87d+68etKkSX3Uog24wQCJnldJ9IsDrW196bUDNpFM/NYP2l06dux4qnnz5q5rrRBbKWvVqpWlV69e65YtW9YSaQ24gQCJ9v1aJGrTpg3bsmUL27BhA1u1ahUbNGgQGz58OEtKSgqQGzp06Dz81sWAAQPSW7ZsaUM0oAB1MCQkxINdqQq7U0VoaGhN48aNebq/HJEJ+vnciBEjYnHdgBuEX5NEtHFkZ2ezzMxMdujQIXb48GEe9u7dGyBXL4lg8yxv1qyZgqhPELtRDZj5Rv/+/Rfdc889ceHhXTtFdI+NateuU9c7Ro26v1OnTltArPNQdwENoEzhrbfeGod4A24Afk0SUZg8eTKDecJg77Lz58+zL774gm3cuDFApg6JevfuPR87jYwoF6BdJiIi4s+xsbGjuMBVsGvXrjZQYzkgjgmXvkaISCNHjuxNMg349+LXJhFsXB769u3L4FgxrCOP+8sEkAj67nYYyBWI8kzsRqx79+4bGWNNKB+/jSVr/jjF/PATsmHhq7Lw0AceY84h0bh8qVJ2aBDJEMaMGRMLVfepvx0Fb+7M008/3YIL/AeAlb7VXyr94xix9NQtjJ1qrCb/5vFrk+hago9E2K6akw3jzSCbBrvKep4JSOZnxsjC/HOKIZkx+yTGzOMYMyEUjWesOJEpxrRiyfzIbqXqHxEkP2vWrI4gzmeI+urr2bPnIsrzR3X1Z51F4ZHXFUv2x5Juwcdu7ex3RH3O25J56VOieQedd9wUoA+vexxzJPRJq1Sf76wm/+ZxJRKRkUxq6MUXX2SLFi3iabBn2fr169mxY8fYwYMHrxiOHz/OEhMT69TpDT4SwZBO89oztINERUW9xDMA2bwxSxbSqph1ImPaBxDGgkAgjwXXAohUeD9jhgdBrilMFjK/Uop3cdU1duzY/tjZ7IjyeuG16ebNm8dJ5oWr6vMBkia5hjlATFs8Y6UIJQkgZzzzmKZdEo1rslTRGwpRk/g+uzCBSYWJDsX5TU81+TePK5EoMjKSCYIAZcLYO++8w9OgLXxpP4c9e/bUqdMbOIkg0wi70FlvIhhafPfdd/OJc1nWT5L0aTIzPsiUApAHxMHEKpJmWoGkTfuHrEktYubEyyQqAMGKJzFJP+9z5cIH/BSzT58+j5JdRfXS4Lp16xZwpuC68GmMrEmyM2Es8xROlGRtWpWkSZKYAIJaHkRdM8tchh0DVPEbBlGTcoaVxWOsyTbmPN9DTf7N40ok6tixI/vxxx85Id544w2eBll29uxZZrfbmdVqZaWlpUxRFC7jdDqZxWJhNpuNFRcXs7Vr19ap0xs4ieLi4vrA+6qkBOoAWLsN8SDlwuvhkm52IbOMA4FAEEsC80CluYqemIx22nEZ10d9RfOalbJ+RgntSlwOO5JkfPRJys/KymrbsmXLQkR5g2FhYWco3QsfiYrHM1k36+81Ze/d5Sp5drwsZL/DDNjlSpKZaFy9kGSdle/2YZfODUPbzZULL8e4LZvmuO17BvOKVCjV73eSrNuS3Zb8uaLjwB08TXG0Ye5zw5Sq9wcohWeacUE/YJz9aoo2TXcXbZqplL0ykNJkbcobrPzKJFKc7/V0W55KqTGunSOV7JygKJfV+JWAPoeKJXvvcVsem4N+p7kvvhzQby+Ui2cjFfdHcYrzU76bK45zXVzW3ye5zY+li6VHbuNCV8HVSPTDDz8QP9jp06d5GsnBE2fQQtxYHjduHCsrK/PJwMliMTExbODAgeRc1anTGziJ4HmleFUZfqthC3FPTLasX8qKpkJdYQcyxzPRtOgth0NpQ3m1IZn33Cvrpjv4whvGMuxU5Ur5ie6UFx0dvd07MOxyJuhXnk7wkQh3Pe7+99TkILlk73RmhIrDziabli/HHRIpFs76jhlSKt2mx96UtdNNrCyFSaZHN6tFgkTj+lzZMMOs6MBxYTLz6JOqRcNDr4imFaeYMLVSNswpE83rfXZWESsKdQtLt3v0aQ5GZQyTmaJLqnAbV+6T9el/Y3ZSZ4EkUpRvWkrGZds8+mklTI8yRrSjnezBDSCIwtoVmP8QVdQHl3FLAql5j36KkxmnXG5HSKmQLYtfcRYf9J3uo2ywZMg6waxJlZJuvk4yr92OeRSYDuodbXmE5CrZ8tAriuNAF7VIHVwPiWoHOFF81yHQeVB9MvUFTqL+/fvTzsMTsGsU7N+/vy3qaSTr53zIrLBRdFA1+pmlSsmrfSFzRbiENXnMiAGTzYRf0ZS/mNL79euXhp2O1w+Surp06TKa0gk+EtnHg3jT/yk5Dj4gWTcnyrrMj7mKLE5mbmNemnKpJFrSJDpYEUhqSeE2k2ycLkuW/PupHtG0egUzJXEVyG0rAf2wYpFLaaFJ3dIOOZM5zfljSB7jayIZHz7I7LhJqE4rCAvisWIscjHStEQqqFM/EqFMqKjLPslsJDcB+QnIT4CqR1vYSZk9GTtw3m6S9cJt2TpNNk138nwr5AsSPJ5CyJNzAvsPxP7eVXoohmRRf1OQ52NmwxhQN7OiL7z/+C3CL/WTzAXtvC8vCa9F8wZq4ZeQiHadkpISLkPGdn0y9QVOInhRf6QLMqhVDw133MfR2NK1ZAsx6wQGb+U4pV8NNdh5QIRKpgeJMGhR/9BhSu8bGzsiJCSkClEiERl0yZRO8JEICyb/NF6RCiZJUsFEhRkx6TYQSztbuCQ8H11T/nZ3WZNsZUYQWhevSOYVu6XiA+jcdyEX7c8P9ujSLhCBPJp4WdQvPCFat2eJpsfyJO2sby8b/yCRaTqR6F5qF+RLYGaQUXgA9SVWScIjO922nZlu46rHPbppFibQQo4LIJEorF7CbCAk+ibr5/3NZd2arFz6bLjbtGW6rJvzNXms2C08kmVjPMkrZS91lTQzi5gd6fqpdtGyaq1Y+e4IsfzkPZJx8V5Zl+Amh0IUFp08xVhjrF2wrF9wlnu9uHFl3VSXJOTuE627s13CsnVSYaqJrweI7jbkPkVt1MZNIxHcv7fogkiExv6EeJBS9cIAWZNiZ3pMviOJiYasVZR+NWBBW0m69L/zgdpBIl3maUqnZ3DYiUpJhM6eYHPNpXSCj0R6lNFj8hy448qwE1gT4enN1jmLtj7I5Upf7c9JhAXBFq+rVG0ygmh8ZC1zYHFNRPYlh9RkDqXmw+6w1/REPiJRjSn/Hkp3GXJeZtbxTDFOVkRj3qNcWIWzeN9Y2ZBayQ17kEhRCjpjXkNAyM9YCRFoWoVctj/FadvdUyl9MsZp29FDduyeLetTq1npRPQhi3u2orDmYbIjmRk7kHHFYaXsdFcX5JXiLX0QHywZcv7KitCGNs3ttD/bi8pwEtFuip1INK1dQWleiCX7RsuGpEpuP2pnfKdUftdezfLhppEIKuwVuiASdejQ4V3EYeC9PBiLVXaZRDBu9ZkBA6oPrOJcmKydpSVPi9kwCboFJyn9tttuGwbylJEIdiQa0CxKJ/hIZMZkapKsHlPuUcn40C4Y6w+zind8toiPRA4Yu9pZn6jJHFABx1gJ2S+TZdG651Y12QfJmLuLnAMikViUz+09kP07KgNvUKCzKi7oB1E77/3L3lkSSGTrWFO0s5ukSysme89TgHKFZNtAfVLQJ6nX8CjtGIdu1vdYh2DRsOgQqUZPAXbZgskK0+HmMJBqTWKKNpEpGhCMn7VNYi7zRr47i0QiqDNZN7NYufhmJO+MH0Rtxvtkq8na1Aui9Vl6nycAN41EMKjo7uUJ6MTXqKORcvHYQEkDg9NHovkrkX9VSOan75O1yXwrZmbobmHpFkqHof47kMiNKB06KlCZEyid4CORA3ewZjodM9SLyyRKsrKyScytmx0gJ+nmvUR3p1Q41V1TtLWbmuyDZFm12UuiGi+JtNN/ojYlTeo/KyoqwrigH3ADnGYVZPMk2TAfHVyWPf1EzbRLNB9SwYRquSC+RNbEO+TC+LLLYWIpfu0eYXKJW5/+yTmyufQLTrCSKVDTD3pkTQJkuQyXl+i3IL7Yo5lU7DEklrjNm/mNxUnEiTjXUFX0VgfeGT+I+uxTzIYbRpeGse6s8yjqppFo8ODBj9IuRAlQO7bQ0NgoRfmw9/WQCO02xwDPkEohw9qjmcok25P3UR7cyCV0Yk1iIFM57UyUTgggUUEqt8fqQy0Sfagmc7h12buZI4Ep+njmtmzMUJN9gHo5w1WEnzqTdBmfkjrzCKkXayy7RnJBFXQkIGlnfnuZmKTO7JFVVWciJC08Jds4ht3g2yrH6wMuWLb0u2jaPMiFX2fli70qi1/qfcH8ZF9n8V7ucbn1i/eyEu69YYfcvrDGuq37RePGgVXC5lin/ZlezuKX+zgrnutB16Wlh1pjDhtzdQYV59GnuETb7hG8QyocitJG1qX/RP2CJ1vkRHtqlg83jUS9e/ce6X3oSjtFcHDLNEUp746tvvRaSERnMx5h6QvMPIV56DgAhrhbl/kZ3HJ+JgNDmuws3iDsr38eP37cd0wQQKLCVNzArJGaFQCfOuMkSg8gkWzblMbM2AFNUAOGdJ3TdmCMgc6SFCXcJeTlydopHqbDODiJ1nPPUBaWr+delgn2hZD9V7ft0KDvYPdUO851cQsPP8+9OxjXnEQ1/9eV+iUbsk5xj0qbIIqmNYuRFkx14TdEtqyZq9hX5bJLR6MojSDZnpjIdFBzFiJr5hml+qxPbbpLdsXJJXnrxKLNd6tJ3DvzGdZGqCxD5kcux8EBlE79Eg2PHFSESQorxlzpMs4gvc4zvZtGooyMjNahoaEF3sQ27aKOKMpXgxV9mmpY/z+JJPvWB0Tj0iNwZTeKxmU5kvDQM4qQ/iMZj0wDAtEZkTDN7bI+yVUWPdQFQV1UL4WIiIhnKN2L6yNR/TsRjIpQUbvgfXJ/mZEM7+SL8JY+xl17nrvKZOjX8s4Ux2tdZMPsQmYlNTeRbCO7rJt7TtTMLGRFKEOGfm3vzPLUnZJ+WhV3wWHfyNrZn4maGSck3ZyvmACyVE2FA5LzjVL1CT94xFhCYBe9yUpRn5nsmOkmUTv7VVmb/ibUaAUriYenNZe5rdvSVfkmPhLRzWiDTaZJLaZ+wcsrZALGZ8b86lPdknHzA1SmNn4piejUmnDdJCJER0dv86q0sPZRJxXlg7hAEmUsqax8t72kTbeychiI2HWYHoOiswwsHD+pxmJ5hESPaFixlOr8+uuvm4aHh79NdVKAqpRuByjPC1fVR/ACky4yZwImOeVz9L9+EjneiJW1SReYayqRiB7sBoAO7WRhwef83IeIAVKycpBDkyRL2tnlpCJYWTpzWtb/Ti0CUmwaCQPbwOxYZKgpVoYyCDBqKyVt6iWKg0RVzPkl95wILvOaJI8p3caKQQCSB3GYAyrcjnLGGQ7ZvCKbsa+bquJBNeXwDoXF75K3SZ4dq8TuB1uLnxtZYJCbFp5i5S9wOw5jv7wTEVG0yS7Mtd3XDsljh/eYple5TWvm88rrwZVIVN+zs9qBTq6rq6u5zMmTJ+uVqS/4SAS7qBd2I+5BgUQvMnZumD+JZEPGohrrie4ebSoIdD/sHqSTAa1FXD27kPQzHaJxfQ6vEIAttMJrCxFBsQudzM/P5yrAi6qqcx1kU+56tz1nt2h+NFtNroMLF14PF41L1kr2RZBbXa+ccuGLcLlo3UqPkP2JZFjwk8ey5JTL+vQEl317gmTK3CGZc58id1wV53DaD/fy2JY9IRnmfynpc36UTEv2K45jI2RL/lzJmr1bND2yjpV/0FYV51CsBwdI1uWb6WAQ9pZGMmT9zWNd9nu3eecQVSQAUKst3aZ1GbIx5xUY29+jrW8l46IX3ab8GVgvH+EozklkJRLNKpNK/zBGNC3Px1i+kvTZP2A8B0T7jjtV8XpxJRLBA+dvKdLLZcnJyXXyKeCGZ7m5uVyGXkSrT6a+4CMRAV7aanpY2jas48naJBKFjOUkIwqL82XzXLi6ady1hZejeAxzvpeMD+9yl58cyisCYGdleT0yCiBoOZ0X8cwbACzIdb0DlA/75nrLEMgLQ7l6d8/6QG3QwaJ6GYAAEunSL1WXHupE6dfTtyuR6N8ZAki0ZMmSZnC/P2kfHn2mjjozZPoOG5nzdA/FsjJOMeTEKWW/HwybxOeKTpmSHt6pU6etTZs25Z+TUKBT6r59+y7gAg24Ii6TaP5fmJ2TqMapvlJzPbjpJCLA/e43/Na7c+2FB+7w6FKLfepMmJ+H7EYZeXmtL0sGYtq0aZ2ioqJyMIhv/AdBBIJa4+dFDbg6vgaJRF3WOX6gqp/t+o8lEYG25wrDoTj/cyJFziVbZyisfBNc9pfQ2U2I58NlfzosLOyDFi1a2Lz2jzdAnUlQaxsQb8C1APMuWbeNl+1rct2WTfNY8alWas414zdDIoJSdmKwP4kYW5YVFNRkhPdp/NUC2VUg10+xsbG+B60NuDH4TZHIbT82pB4S3X41EpHqghfwY3R09IapU6fW+6pCA/69wM2733tUc6MCPPv6jxxqk0gpX/RwUFDr8MjIyBOtW7f+B7wtAcFM703j+hzSd8bExKQ0kOfmAqbGU7iZy6ANblgYPnz4DLX5QLiLjw6T6VSVHheUwzvTZa5Vs+jLkOCjR482f/vtt9tlZWX5zjkacPMxevToKPrq+JZbbul/I8KwYcNiU1JSAs7RfKh2vNxZ1s4wsvLxjFVMY6JxxRUPAhvQgCvCbVo9TS7JPisJS/ZVVdV9LWHhwoWTMjMz1y9YsGBFQ/jfCPPnz18J7bMmLy+PH4ReEwwG1lyN1sHixYvvQqVzUfmMhvC/EbDeM3NyctKXLl1aZ1NpQAP+a0DPhwIe0NbC1fJuKkaOHNn655wMckgQ+P8a1MapU6caw0D9uedj9Izuup/v/aYB1352mzZtjkZHR6+AV8DVHmMsmCaECwQF+U8YT6Pnc/xKBSx831/09e7de0FYWBj/UsKLdu3adQP4Z0GtWrUajfxFdKLOMwFaFP9rLzp16rSoRYsWR9A3+myJfwumynqJWHsx+DXyG/v1vxERoz5yxMfH+/qNft2Fdl6ovcU3b958Xdu2bV+KiYnh7zD179//zqioKN+rwXfccQf9wQXv+5AhQxL79u1Lb3w2Rt8T/P4HsYm3fXq0hHY2Ys4C+tO5c+fHsQ5HIiMjM7EOfM6pjFeOxuNP3jlz5jT3G2MQyBvwrRytpf+cjhs3LmDNqLwa/eVAx5/BxBzv2LHjGQykCxa7HSbgSfqvIpogDGoE0rO7dOkyv3v37s0xmTHIO4Drh6g8uaIgzrOYmJl03adPny0gTcC397iejnb+QvGQkJDxINEXqHMVJiUE9XdE2e243tCrV68AN7Nr166HIbsN7b3XrFmzHqg7ArJPocwG6lvLli0H43oJFnUhfhdjHOEYRyTkd6J/j+3fv78pMBx5h9FP39sJhB49eoyF3CGMN4muIyIiNoWHh3/gP/FERrR/EkPOaN++/Qn0N7hJkyYjcePxd6kxHzPQ9mG0wa8hm474LaNGjWqHvv29Z8+ed9NCo1+L0Qd6kS8yOzu7M8qcjo2NDVh01PUW+vMk9QEEaIX5uAN9OwZi9sRY2uOa5ugJumHR9+6Q3Y35yKD+Ih6D+p/HL18TEHkC6jmC+ePvhKG9AZiz5xD4FzrIH0Fzgvyf/5/GawHusq1Y5AJ08AQug/F7LxbMhjvzHQysBxa2Gxo836FDB/7NGsiwEnlmTCp9BRKMgSaj8xoiIeVjYJtQX8DTfkzoAyh/jOLYWRIQDlDAnRqF9Amo04ZF/AiT3o8XUIHJO4r+vUGLhcsmmLxU1H0EaS9Alh7fdMXEfAk5Ler5lFQJFnIS0ksg9yYtJtpJRv0HsRgBfxsIIuyjhcE46Hs9+m4vG3H+6bkXRCKkvUhfF6PNUyrBUjAe/jAabf2R3vIEcbbSNercgptkChEHMn++7777YmjR0f9XsJClkB27Y8eOMMzna7VJhHl8DzIn0SdOaizwQszlywjNUNe9CKVo712U7YaxxGHOv0J8H40Zv6uxJkaM+TUqO3DgwA3o9x9Q9nXqM/q0DPL7QZ6JlI/52I76DKjvCF3/YqDxLNxpM7AYK9FQOAYahU49hw486lVbWKDtyE+lOGTuxECPYPdJU/PisYivIZ9/Co1yGegc76wXWICeKLN71apV4VjgkWgzE0Sdi8mNwsC7os7nMcAltbdYTOyK0NBQ3yc1qLs3yaK9HYhH0AShrcfQ5zyQgN5QCEI/emIxDiGff/tPC4BJ4331B2QSMc7jqI9/FAC5+707jD+Qvhn1v0QEVpNGQ47f0VjoXNTzBfr4NF1TOsZ3F8XRj21xcXH0BmYrtPMMZP+EPt66d+/eVsjb4FVZXuCmeBzz4fvTC4w93vtnnCBEFxo3+vAILoNBzt79+vV7DnP6OK6boA+3In4YxOSnzkOHDp2JNuYNGjRoNe3GmP/hmLM/4JqfE6Lu+9Gnw9ghA8yOXwKvrmzmvTtoO0UnOvLUy6AvO33bPAYUjoHxF/UpHYOg95G5faHWUcfwxMDCVL1Nepx+vXEiRxsMqo67iXTqW4AhTvWA9L5XWdTFaESq5nJKUBDl+9VH+fUay6T61CjhSnI0Lv//eCY5Pk/o31jMw9uYjwS6Bqg8HzvZWzQuilN/AKqDXkxrpI4rAGqab45pXP67FeK491r5/nCC1ke1xzhAqg5ec0C1o0L861Tb97VLawZc9xsGDWjAVRAU9C9hjY4QJT9n9wAAAABJRU5ErkJggg=="
-                    alt="Company Logo" class="logo">
-            </div>
-
-            <table style="width: 100%; background: #ffffff; border-color: #fff;">
-                <tr>
-                    <td style="width: 0.7cm; position: relative; top: -25px;">
-                        <div class="sidebar-images">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAE4CAMAAADPZkUAAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURf/AAAAAAKi2+tgAAAACdFJOU/8A5bcwSgAAAAlwSFlzAAAywAAAMsABKGRa2wAAAC1JREFUeF7twTEBAAAAwqD1T20JTyAAAAAAAAAAAAAAAAAAAAAAAAAAAACAixpY+AABpzy26QAAAABJRU5ErkJggg=="
-                                alt="Yellow" style="width: 0.6cm; height: 2.5cm; margin-bottom: 0.2cm;">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAAAlCAMAAADWWV/xAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAGUExURQAAAAAAAKVnuc8AAAACdFJOU/8A5bcwSgAAAAlwSFlzAAAywAAAMsABKGRa2wAAABpJREFUSEvtwTEBAAAAwqD1T20MHyAAAPioAQqNAAEoaKkLAAAAAElFTkSuQmCC"
-                                alt="Black" style="width: 0.6cm; height: 0.8cm;">
-                        </div>
-                    </td>
-                    <td style="padding-left: 0px;">
-                        <h2
-                            style="font-size: 49px; color: #333; border-bottom: 1px solid #161515;  margin-top: 50px; margin-bottom: 20px; padding-left: 0%; width: 100%;">
-                            Profile</h2>
-                    </td>
-                </tr>
-            </table>
-
-
-            <div style="border: none; background: none;">
-                <table>
-                    <tr>
-                        <td style="vertical-align: top; width: 30%;background-color: #fff;">
-                            <img src="data:image/jpeg;base64,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"
-                                alt="Profile Picture" class="profile-img"
-                                style="max-width: 100%; height: auto; margin-right: 20px;">
-                        </td>
-                        <td style="vertical-align: top;background-color: #fff;">
-                            <table id="personalDetailsTable">
-                                <!-- Table content here -->
-                                <tr>
-                                    <th style="width: 100px;">Name</th> <!-- Adjusted width to 100px -->
-                                    <td id="name" class="bold-orange"></td>
-                                </tr>
-                                <tr>
-                                    <th style="width: 100px;">Role</th> <!-- Adjusted width to 80px -->
-                                    <td id="role"></td>
-                                </tr>
-                                <tr>
-                                    <th style="width: 100px;">Email</th> <!-- Adjusted width to 120px -->
-                                    <td id="email"></td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Profile content -->
-            <h3 id="profileSummaryHeading">Profile</h3>
-            <p class="profile" id="profileSummary"></p>
-
-            <!-- Professional Experience -->
-            <h3 id="professionalExperienceHeading">Professional Experience</h3>
-            <table id="professionalExperienceTable">
-                <tr>
-                    <th>Duration</th>
-                    <th>Organization</th>
-                    <th>Designation</th>
-                </tr>
-            </table>
-
-            <!-- Technical Skills -->
-            <h3 id="technicalSkillsHeading">Technical Skills</h3>
-            <table id="technicalSkillsTable">
-                <tr>
-                    <th>Expertise</th>
-                    <th>Skills</th>
-                </tr>
-            </table>
-
-            <h3 id="certificationsHeading">Certifications</h3>
-            <p id="certifications"></p>
-
-            <!-- Projects -->
-            <h3>Projects</h3>
-            <div id="projects">
-                <!-- Dynamic project tables will be inserted here -->
-            </div>
-
-            <!-- Education -->
-            <h3 id="educationHeading">Education</h3>
-            <table id="educationTable">
-                <tr>
-                    <th>Qualification</th>
-                    <th>University/Board</th>
-                    <th>Year</th>
-                    <th>Percentage</th>
-                </tr>
-            </table>
-
-
-        </div>
-
-        <!-- Download Button Section -->
-        <div id="downloadSection">
-
-        </div>
-
+        <h1>Welcome to Resume to PIT Format</h1>
+        <p>Simplify your recruitment process by converting resumes into our organization's PIT format with ease.</p>
+        <button id="getStartedBtn">Get Started</button>
     </div>
 
-    <!-- JavaScript for Exporting to Word -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            // Show the loading animation
-            document.getElementById('loadingContainer').style.display = 'block';
-
-            const formData = new FormData(this);
-
-            fetch('/process', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide the loading animation
-                    document.getElementById('loadingContainer').style.display = 'none';
-
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        // Populate the fields with the parsed resume data
-                        document.getElementById('name').textContent = data.Name || '';
-                        document.getElementById('email').textContent = data.Email || '';
-                        document.getElementById('role').textContent = data.Role || '';
-                        document.getElementById('profileSummary').textContent = data.Profile || '';
-
-                        // Populate professional experience
-                        const professionalExperienceTable = document.getElementById('professionalExperienceTable');
-                        if (data['Professional Experience'] && data['Professional Experience'].length > 0) {
-                            professionalExperienceTable.innerHTML = `
-                            <tr>
-                                <th>Duration</th>
-                                <th>Organization</th>
-                                <th>Designation</th>
-                            </tr>`;
-                            data['Professional Experience'].forEach(exp => {
-                                professionalExperienceTable.innerHTML += `
-                                <tr>
-                                    <td>${exp.Duration || ''}</td>
-                                    <td>${exp.Organization || ''}</td>
-                                    <td>${exp.Designation || ''}</td>
-                                </tr>`;
-                            });
-                        } else {
-                            professionalExperienceTable.innerHTML = ''; // Clear table if no data
-                            professionalExperienceTable.style.display = 'none';
-                            document.getElementById('professionalExperienceHeading').style.display = 'none';
-                        }
-
-                        // Populate technical skills
-                        const technicalSkillsTable = document.getElementById('technicalSkillsTable');
-                        if (data['Technical Skills'] && data['Technical Skills'].length > 0) {
-                            technicalSkillsTable.innerHTML = `
-                            <tr>
-                                <th>Expertise</th>
-                                <th>Skills</th>
-                            </tr>`;
-                            data['Technical Skills'].forEach(skill => {
-                                technicalSkillsTable.innerHTML += `
-                                <tr>
-                                    <td>${skill.Category || ''}</td>
-                                    <td>${skill.Skills || ''}</td>
-                                </tr>`;
-                            });
-                        } else {
-                            technicalSkillsTable.innerHTML = ''; // Clear table if no data
-                            technicalSkillsTable.style.display = 'none';
-                        }
-
-                        // Populate projects
-                        const projectsContainer = document.getElementById('projects');
-                        projectsContainer.innerHTML = ''; // Clear previous content
-                        if (data['Project Experience - Detail'] && data['Project Experience - Detail'].length > 0) {
-                            data['Project Experience - Detail'].forEach((project, index) => {
-                                const projectTable = document.createElement('table');
-                                projectTable.innerHTML = `
-                                <tr>
-                                    <th>Project Type</th>
-                                    <td>${project['Project Type'] || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Description</th>
-                                    <td>${project.Description || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Role</th>
-                                    <td>${project.Role || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Team Size</th>
-                                    <td>${project['Team Size'] || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Duration</th>
-                                    <td>${project.Duration || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tools & Technology</th>
-                                    <td>${project['Tools & Technology'] || ''}</td>
-                                </tr>
-                                <tr>
-                                    <th>Responsibilities</th>
-                                    <td>${project.Responsibilities || ''}</td>
-                                </tr>`;
-
-                                // Add a heading for each project
-                                const projectHeading = document.createElement('h3');
-                                projectHeading.textContent = `Project ${index + 1}`;
-                                projectsContainer.appendChild(projectHeading);
-                                projectsContainer.appendChild(projectTable);
-                            });
-                        } else {
-                            projectsContainer.style.display = 'none';
-                        }
-
-                        // Populate education
-                        const educationTable = document.getElementById('educationTable');
-                        if (data['Educational Details'] && data['Educational Details'].length > 0) {
-                            educationTable.innerHTML = `
-                            <tr>
-                                <th>Qualification</th>
-                                <th>University/Board</th>
-                                <th>Year</th>
-                                <th>Percentage</th>
-                            </tr>`;
-                            data['Educational Details'].forEach(edu => {
-                                educationTable.innerHTML += `
-                                <tr>
-                                    <td>${edu.Qualification || ''}</td>
-                                    <td>${edu['University/Board'] || ''}</td>
-                                    <td>${edu.Year || ''}</td>
-                                    <td>${edu.Percentage || ''}</td>
-                                </tr>`;
-                            });
-                        } else {
-                            educationTable.style.display = 'none';
-                            document.getElementById('educationHeading').style.display = 'none';
-                        }
-
-                        // Populate certifications
-                        document.getElementById('certifications').textContent = data.Certifications || '';
-
-                        // Show the form data display section
-                        document.getElementById('uploadFormWrapper').style.display = 'none';
-                        document.getElementById('formDataDisplay').style.display = 'block';
-
-                        // Show the download button
-                        const downloadSection = document.getElementById('downloadSection');
-                        downloadSection.innerHTML = '<button id="downloadButton">Download</button>';
-                        const downloadButton = document.getElementById('downloadButton');
-                        downloadButton.style.display = 'block'; // Ensure it's visible
-                        downloadButton.addEventListener('click', exportToWord); // Attach event listener
-                    }
-                })
-                .catch(error => {
-                    // Hide the loading animation
-                    document.getElementById('loadingContainer').style.display = 'none';
-
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                });
+        document.getElementById("getStartedBtn").addEventListener("click", function() {
+            // Redirect to /pit after 2 seconds
+            setTimeout(function() {
+                window.location.href = "/pit"; // Redirect to the /pit endpoint
+            }, 1000); 
         });
-
-        // Update loading message function
-        const messages = [
-            "Fetching data... This might take a few seconds.",
-            "Almost there! Extracting details from your resume.",
-            "Getting your data ready... Please be patient."
-        ];
-
-        let currentIndex = 0;
-
-        function updateMessage() {
-            currentIndex = (currentIndex + 1) % messages.length;
-            document.getElementById('loadingMessage').innerText = messages[currentIndex];
-        }
-
-        // Update the message every 3 seconds
-        setInterval(updateMessage, 3000);
-
-
-        function exportToWord() {
-            // Get HTML content from formDataDisplay section
-            const formDataDisplayHTML = document.getElementById('formDataDisplay').innerHTML;
-
-            // Create a Blob containing the HTML data
-            const blob = new Blob([wrapHtmlInWordTemplate(formDataDisplayHTML)], { type: 'application/msword' });
-
-            // Create a link element to trigger the download
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'resume.doc';
-            document.body.appendChild(link);
-
-            // Trigger the download
-            link.click();
-
-            // Clean up
-            document.body.removeChild(link);
-        }
-
-        // Helper function to wrap HTML in a Word-compatible template
-        function wrapHtmlInWordTemplate(html) {
-            // Define a basic Word document structure with inline CSS styles
-            const template = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Resume</title>
-            <style>
-                body {
-                    font-family: Calibri, Arial, sans-serif;
-                    line-height: 1.6;
-                    font-size: 11pt; /* Ensure font size is specified in points (pt) */
-                    margin: 0;
-                }
-                .container {
-                    max-width: calc(210mm - 32mm);
-                    margin: 0 auto;
-                    background: #fff;
-                    padding: 20px 16mm;
-                    border-radius: 8px;
-                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                    position: relative; /* Ensure relative positioning for absolute positioning of logo */
-                }
-                .header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    padding-top: 10px;
-                }
-                .logo {
-                    width: 150px;
-                    height: auto;
-                    opacity: 0.6;
-                    position: absolute;
-                    top: 10px; /* Adjust top position for desired vertical alignment */
-                    right: 20px; /* Adjust right position for right-hand corner */
-                }
-                .sidebar-images {
-                    position: absolute;
-                    left: 20px; /* Adjust left position for left-hand corner */
-                    top: 100px; /* Adjust top position for desired vertical alignment */
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-                .sidebar-images img {
-                    width: 50px; /* Adjust width of images */
-                    height: auto; /* Maintain aspect ratio */
-                    margin-bottom: 10px; /* Adjust margin as needed */
-                }
-                .sidebar-images img.yellow {
-                    /* Specific styles for yellow image */
-                }
-                .sidebar-images img.black {
-                    /* Specific styles for black image */
-                }
-                h3 {
-                font-size: 16pt; /* Specify font size in points (pt) */
-                color: black;
-                border-bottom: 1px solid #ccc;
-                padding-bottom: 10px;
-                margin-top: 20px;
-                font-weight: normal; /* Ensures the text is not bold */
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 20px;
-                    background-color: #f0f0f0;
-                }
-                table th,
-                table td {
-                    border: 1px solid #ffffff;
-                    text-align: left;
-                    padding: 5px;
-                    font-family: Calibri, Arial, sans-serif;
-                    vertical-align: top;
-                }
-                th {
-                    background-color: #e7e7e7;
-                    width: 25%;
-                    white-space: nowrap;
-                }
-                .profile {
-                    font-style: normal;
-                    
-                    margin-bottom: 20px;
-                }
-                .profile-section {
-                    display: flex;
-                    align-items: center;
-                    margin-bottom: 20px;
-                }
-                .profile-img {
-                    width: 120px;
-                    height: 120px;
-                    border-radius: 8px;
-                    margin-right: 20px;
-                }
-                .personal-details {
-                    flex: 1;
-                }
-              .bold-orange {
-            font-weight: bold;
-            color: rgb(252, 194, 6);
-        }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                ${html}
-                <!-- Additional content can go here -->
-            </div>
-        </body>
-        </html>
-    `;
-            return template;
-        }
-
-        // Event listener for the download button
-        document.getElementById('downloadButton').addEventListener('click', exportToWord);
-
     </script>
-
 </body>
-
 </html>
+
